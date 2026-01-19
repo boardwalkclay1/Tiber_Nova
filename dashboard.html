@@ -4,26 +4,45 @@
   <meta charset="UTF-8" />
   <title>TimberNova — Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body{margin:0;background:#020617;color:#f9fafb;font-family:system-ui,sans-serif;display:flex;flex-direction:column;min-height:100vh;}
+    header,footer{padding:16px 24px;background:rgba(2,6,23,0.9);border-bottom:1px solid rgba(148,163,184,0.3);display:flex;justify-content:space-between;align-items:center;}
+    footer{border-top:1px solid rgba(148,163,184,0.3);border-bottom:none;margin-top:auto;}
+    main{padding:24px;max-width:1100px;margin:0 auto;flex:1;}
+    nav button{border:none;background:none;color:#9ca3af;cursor:pointer;font-size:13px;margin-left:8px;}
+    nav button:hover{color:#e5e7eb;}
+    h1{font-size:22px;margin-bottom:8px;}
+    h2{font-size:18px;margin:16px 0 8px;}
+    .sub{color:#9ca3af;font-size:14px;margin-bottom:16px;}
+    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+    .stat{background:rgba(15,23,42,1);border-radius:14px;border:1px solid rgba(148,163,184,0.3);padding:12px;text-align:center;font-size:13px;}
+    .stat strong{display:block;font-size:20px;color:#4ade80;margin-bottom:4px;}
+    .job-list div{padding:6px 0;border-bottom:1px solid rgba(148,163,184,0.25);font-size:14px;}
+    .job-list div:last-child{border-bottom:none;}
+    .pill-btn,.pill-btn-ghost{border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;margin-right:6px;}
+    .pill-btn{border:none;background:linear-gradient(120deg,#22c55e,#4ade80);color:#022c22;}
+    .pill-btn-ghost{border:1px solid rgba(148,163,184,0.5);background:rgba(15,23,42,0.9);color:#e5e7eb;}
+  </style>
 </head>
-
 <body>
 <header>
   <div>TimberNova • Dashboard</div>
   <nav>
-    <a href="dashboard.html">Dashboard</a>
-    <a href="contracts.html">Contracts</a>
-    <a href="calendar.html">Calendar</a>
-    <a href="trees.html">Trees</a>
-    <a href="stores.html">Stores</a>
-    <a href="calls.html">Calls</a>
-    <a href="#" id="logout">Logout</a>
+    <button onclick="location.href='dashboard.html'">Dashboard</button>
+    <button onclick="location.href='clients.html'">Clients</button>
+    <button onclick="location.href='contracts.html'">Contracts</button>
+    <button onclick="location.href='calendar.html'">Calendar</button>
+    <button onclick="location.href='trees.html'">Trees</button>
+    <button onclick="location.href='map.html'">Map</button>
+    <button onclick="location.href='profile.html'">Profile</button>
+    <button onclick="location.href='settings.html'">Settings</button>
+    <button id="logout">Logout</button>
   </nav>
 </header>
 
-<main style="padding:24px;max-width:1100px;margin:0 auto;">
+<main>
   <h1>Dashboard</h1>
-  <div class="sub">Today’s jobs, open contracts, and quick navigation.</div>
+  <div class="sub">Today’s jobs, contracts, and quick actions.</div>
 
   <div class="stats-grid">
     <div class="stat"><strong id="jobsTodayCount">0</strong>Jobs today</div>
@@ -34,45 +53,46 @@
   <h2>Today’s jobs</h2>
   <div id="todayJobsList" class="job-list"></div>
 
-  <h2 style="margin-top:20px;">Quick actions</h2>
+  <h2>Quick actions</h2>
   <button class="pill-btn" onclick="location.href='contract-form.html'">New contract</button>
   <button class="pill-btn-ghost" onclick="location.href='calendar.html'">Open calendar</button>
-  <button class="pill-btn-ghost" onclick="location.href='trees.html'">Open encyclopedia</button>
-  <button class="pill-btn-ghost" onclick="location.href='contracts.html'">Open contracts</button>
+  <button class="pill-btn-ghost" onclick="location.href='clients.html'">Clients</button>
+  <button class="pill-btn-ghost" onclick="location.href='trees.html'">Tree encyclopedia</button>
 
-  <h2 style="margin-top:20px;">Tree of the day</h2>
+  <h2>Tree of the day</h2>
   <div id="treeName" style="font-size:18px;color:#4ade80;"></div>
   <div id="treeDesc" style="color:#9ca3af;"></div>
 </main>
 
 <footer>TimberNova • Dashboard</footer>
 
-<script src="app.js"></script>
 <script>
-TN.requireAuth();
-document.getElementById("logout").onclick = TN.logout;
+function getCurrentUser(){try{return JSON.parse(localStorage.getItem("timberNovaUser")||"null");}catch{return null;}}
+function requireAuth(){if(!getCurrentUser())window.location.href="index.html";}
+function loadContracts(){try{return JSON.parse(localStorage.getItem("timberNovaContracts")||"[]");}catch{return[];}}
+function loadEvents(){try{return JSON.parse(localStorage.getItem("timberNovaCalendarEvents")||"[]");}catch{return[];}}
+function todayStr(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+const ENC=[{id:"t1",type:"tree",common:"White oak",latin:"Quercus alba",region:"Eastern US",notes:"Strong, long-lived, iconic canopy.",protocol:"Inspect for deadwood, co-dominant stems, and root issues."},{id:"t2",type:"tree",common:"Loblolly pine",latin:"Pinus taeda",region:"Southeast US",notes:"Fast-growing pine common in the Southeast.",protocol:"Check lean, root plate, and wind exposure."},{id:"t3",type:"tree",common:"Red maple",latin:"Acer rubrum",region:"Eastern US",notes:"Adaptable with vibrant fall color.",protocol:"Watch for included bark and decay at unions."}];
+function treeOfDay(){const trees=ENC.filter(i=>i.type==="tree");return trees[Math.floor(Math.random()*trees.length)];}
 
-const contracts = TN.loadContracts();
-const events = TN.loadEvents();
+requireAuth();
+document.getElementById("logout").onclick=()=>{localStorage.removeItem("timberNovaUser");window.location.href="index.html";};
 
-document.getElementById("openContractsCount").textContent =
-  contracts.filter(c => ["Draft","Sent","ClientSigned"].includes(c.status)).length;
+const contracts=loadContracts();
+const events=loadEvents();
+document.getElementById("openContractsCount").textContent=contracts.filter(c=>["Draft","Sent","ClientSigned"].includes(c.status)).length;
+document.getElementById("totalContractsCount").textContent=contracts.length;
 
-document.getElementById("totalContractsCount").textContent = contracts.length;
-
-const today = TN.todayStr();
-const todaysEvents = events.filter(e => e.date === today);
-
-document.getElementById("jobsTodayCount").textContent = todaysEvents.length;
-
-const list = document.getElementById("todayJobsList");
-list.innerHTML = todaysEvents.length
-  ? todaysEvents.map(e => `<div>• ${e.title}</div>`).join("")
+const today=todayStr();
+const todaysEvents=events.filter(e=>e.date===today);
+document.getElementById("jobsTodayCount").textContent=todaysEvents.length;
+document.getElementById("todayJobsList").innerHTML=todaysEvents.length
+  ? todaysEvents.map(e=>`<div>• ${e.title}</div>`).join("")
   : "<div style='color:#9ca3af;'>No jobs today.</div>";
 
-const tree = TN.treeOfDay();
-document.getElementById("treeName").textContent = `${tree.common} (${tree.latin})`;
-document.getElementById("treeDesc").textContent = tree.notes;
+const t=treeOfDay();
+document.getElementById("treeName").textContent=`${t.common} (${t.latin})`;
+document.getElementById("treeDesc").textContent=t.notes;
 </script>
 </body>
 </html>
