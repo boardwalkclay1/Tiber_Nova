@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TimberNova — Trees</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+<header>
+  <div>TimberNova • Trees</div>
+  <nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="contracts.html">Contracts</a>
+    <a href="calendar.html">Calendar</a>
+    <a href="trees.html">Trees</a>
+    <a href="stores.html">Stores</a>
+    <a href="calls.html">Calls</a>
+    <a href="#" id="logout">Logout</a>
+  </nav>
+</header>
+
+<main style="padding:24px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.6fr 1fr;gap:24px;">
+  <section class="panel">
+    <h1>Encyclopedia</h1>
+    <div class="sub">Trees, plants, diseases, and protocols.</div>
+
+    <input id="searchInput" class="input" placeholder="Search species, diseases, regions..." />
+
+    <div class="filter-row">
+      <div class="filter-pill active" data-type="all">All</div>
+      <div class="filter-pill" data-type="tree">Trees</div>
+      <div class="filter-pill" data-type="plant">Plants</div>
+      <div class="filter-pill" data-type="disease">Diseases</div>
+      <div class="filter-pill" data-type="protocol">Protocols</div>
+    </div>
+
+    <div id="resultList" class="result-list"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Details</h2>
+    <div id="detailPane" style="color:#9ca3af;">Select an item.</div>
+  </section>
+</main>
+
+<footer>TimberNova • Trees</footer>
+
+<script src="app.js"></script>
+<script>
+TN.requireAuth();
+document.getElementById("logout").onclick = TN.logout;
+
+const searchInput = document.getElementById("searchInput");
+const resultList = document.getElementById("resultList");
+const detailPane = document.getElementById("detailPane");
+const pills = [...document.querySelectorAll(".filter-pill")];
+
+let activeType = "all";
+
+function renderList() {
+  const q = searchInput.value;
+  const items = TN.searchEncyclopedia(q, activeType);
+
+  if (!items.length) {
+    resultList.innerHTML = "<div style='color:#9ca3af;'>No matches.</div>";
+    return;
+  }
+
+  resultList.innerHTML = items.map(i => `
+    <div class="result-item" data-id="${i.id}">
+      <span class="tag">${i.type}</span>
+      <strong>${i.common}</strong> (${i.latin})<br/>
+      <span style="color:#9ca3af;">${i.region}</span>
+    </div>
+  `).join("");
+}
+
+function renderDetail(id) {
+  const i = TN.ENCYCLOPEDIA.find(x => x.id === id);
+  if (!i) return;
+
+  detailPane.innerHTML = `
+    <div class="detail-title">${i.common} (${i.latin})</div>
+    <div class="detail-sub"><span class="tag">${i.type}</span>Region: ${i.region}</div>
+    <div>${i.notes}</div>
+    <div style="margin-top:8px;"><strong>Protocol:</strong><br/>${i.protocol}</div>
+  `;
+}
+
+searchInput.addEventListener("input", renderList);
+
+pills.forEach(p => {
+  p.onclick = () => {
+    pills.forEach(x => x.classList.remove("active"));
+    p.classList.add("active");
+    activeType = p.dataset.type;
+    renderList();
+  };
+});
+
+resultList.onclick = e => {
+  const item = e.target.closest(".result-item");
+  if (item) renderDetail(item.dataset.id);
+};
+
+renderList();
+</script>
+</body>
+</html>
