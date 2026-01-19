@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TimberNova — Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+<header>
+  <div>TimberNova • Dashboard</div>
+  <nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="contracts.html">Contracts</a>
+    <a href="calendar.html">Calendar</a>
+    <a href="trees.html">Trees</a>
+    <a href="stores.html">Stores</a>
+    <a href="calls.html">Calls</a>
+    <a href="#" id="logout">Logout</a>
+  </nav>
+</header>
+
+<main style="padding:24px;max-width:1100px;margin:0 auto;">
+  <h1>Dashboard</h1>
+  <div class="sub">Today’s jobs, open contracts, and quick navigation.</div>
+
+  <div class="stats-grid">
+    <div class="stat"><strong id="jobsTodayCount">0</strong>Jobs today</div>
+    <div class="stat"><strong id="openContractsCount">0</strong>Open contracts</div>
+    <div class="stat"><strong id="totalContractsCount">0</strong>Total contracts</div>
+  </div>
+
+  <h2>Today’s jobs</h2>
+  <div id="todayJobsList" class="job-list"></div>
+
+  <h2 style="margin-top:20px;">Quick actions</h2>
+  <button class="pill-btn" onclick="location.href='contract-form.html'">New contract</button>
+  <button class="pill-btn-ghost" onclick="location.href='calendar.html'">Open calendar</button>
+  <button class="pill-btn-ghost" onclick="location.href='trees.html'">Open encyclopedia</button>
+  <button class="pill-btn-ghost" onclick="location.href='contracts.html'">Open contracts</button>
+
+  <h2 style="margin-top:20px;">Tree of the day</h2>
+  <div id="treeName" style="font-size:18px;color:#4ade80;"></div>
+  <div id="treeDesc" style="color:#9ca3af;"></div>
+</main>
+
+<footer>TimberNova • Dashboard</footer>
+
+<script src="app.js"></script>
+<script>
+TN.requireAuth();
+document.getElementById("logout").onclick = TN.logout;
+
+const contracts = TN.loadContracts();
+const events = TN.loadEvents();
+
+document.getElementById("openContractsCount").textContent =
+  contracts.filter(c => ["Draft","Sent","ClientSigned"].includes(c.status)).length;
+
+document.getElementById("totalContractsCount").textContent = contracts.length;
+
+const today = TN.todayStr();
+const todaysEvents = events.filter(e => e.date === today);
+
+document.getElementById("jobsTodayCount").textContent = todaysEvents.length;
+
+const list = document.getElementById("todayJobsList");
+list.innerHTML = todaysEvents.length
+  ? todaysEvents.map(e => `<div>• ${e.title}</div>`).join("")
+  : "<div style='color:#9ca3af;'>No jobs today.</div>";
+
+const tree = TN.treeOfDay();
+document.getElementById("treeName").textContent = `${tree.common} (${tree.latin})`;
+document.getElementById("treeDesc").textContent = tree.notes;
+</script>
+</body>
+</html>
