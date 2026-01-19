@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TimberNova — Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body{margin:0;background:#020617;color:#f9fafb;font-family:system-ui,sans-serif;display:flex;flex-direction:column;min-height:100vh;}
+    header,footer{padding:16px 24px;background:rgba(2,6,23,0.9);border-bottom:1px solid rgba(148,163,184,0.3);display:flex;justify-content:space-between;align-items:center;}
+    footer{border-top:1px solid rgba(148,163,184,0.3);border-bottom:none;margin-top:auto;}
+    main{padding:24px;max-width:900px;margin:0 auto;flex:1;}
+    nav button{border:none;background:none;color:#9ca3af;cursor:pointer;font-size:13px;margin-left:8px;}
+    nav button:hover{color:#e5e7eb;}
+    h1{font-size:22px;margin-bottom:8px;}
+    .panel{background:rgba(15,23,42,0.9);border-radius:16px;border:1px solid rgba(148,163,184,0.3);padding:16px;margin-bottom:16px;}
+  </style>
+</head>
+<body>
+<header>
+  <div>TimberNova • Profile</div>
+  <nav>
+    <button onclick="location.href='dashboard.html'">Dashboard</button>
+    <button onclick="location.href='clients.html'">Clients</button>
+    <button onclick="location.href='contracts.html'">Contracts</button>
+    <button onclick="location.href='calendar.html'">Calendar</button>
+    <button onclick="location.href='trees.html'">Trees</button>
+    <button onclick="location.href='map.html'">Map</button>
+    <button onclick="location.href='profile.html'">Profile</button>
+    <button onclick="location.href='settings.html'">Settings</button>
+    <button id="logout">Logout</button>
+  </nav>
+</header>
+
+<main>
+  <h1>Profile</h1>
+  <div class="panel" id="profilePanel"></div>
+</main>
+
+<footer>TimberNova • Profile</footer>
+
+<script>
+function getCurrentUser(){try{return JSON.parse(localStorage.getItem("timberNovaUser")||"null");}catch{return null;}}
+function requireAuth(){if(!getCurrentUser())window.location.href="index.html";}
+
+requireAuth();
+document.getElementById("logout").onclick=()=>{localStorage.removeItem("timberNovaUser");window.location.href="index.html";};
+
+const u=getCurrentUser();
+document.getElementById("profilePanel").innerHTML=`
+  <strong>Name:</strong> ${u.name}<br/>
+  <strong>Email:</strong> ${u.email}<br/>
+  <strong>Role:</strong> ${u.role}
+`;
+</script>
+</body>
+</html>
