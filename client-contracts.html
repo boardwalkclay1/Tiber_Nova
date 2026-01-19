@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Client Contracts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body{margin:0;background:#020617;color:#f9fafb;font-family:system-ui,sans-serif;}
+    header{padding:16px 24px;background:#0f172a;border-bottom:1px solid rgba(148,163,184,0.3);}
+    main{padding:24px;max-width:900px;margin:0 auto;}
+    .panel{background:#0f172a;border:1px solid rgba(148,163,184,0.3);border-radius:16px;padding:20px;margin-bottom:20px;}
+    .item{padding:10px;border-bottom:1px solid rgba(148,163,184,0.3);cursor:pointer;}
+    .item:last-child{border-bottom:none;}
+  </style>
+</head>
+<body>
+
+<header><h2>Your Contracts</h2></header>
+
+<main>
+  <div id="list" class="panel"></div>
+</main>
+
+<script>
+function loadContracts(){try{return JSON.parse(localStorage.getItem("timberNovaContracts")||"[]");}catch{return[];}}
+
+const params=new URLSearchParams(location.search);
+const cid=params.get("id");
+
+const list=document.getElementById("list");
+const contracts=loadContracts().filter(c=>c.clientId===cid);
+
+if(!contracts.length){
+  list.innerHTML="<div style='color:#9ca3af;'>No contracts yet.</div>";
+}else{
+  list.innerHTML=contracts.map(c=>`
+    <div class="item" onclick="location.href='client-contract.html?id=${c.id}'">
+      <strong>${c.jobAddress}</strong><br>
+      <span style="color:#9ca3af;">Status: ${c.status}</span>
+    </div>
+  `).join("");
+}
+</script>
+
+</body>
+</html>
