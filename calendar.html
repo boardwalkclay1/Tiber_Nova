@@ -8,19 +8,74 @@
     body{margin:0;background:#020617;color:#f9fafb;font-family:system-ui,sans-serif;display:flex;flex-direction:column;min-height:100vh;}
     header,footer{padding:16px 24px;background:rgba(2,6,23,0.9);border-bottom:1px solid rgba(148,163,184,0.3);display:flex;justify-content:space-between;align-items:center;}
     footer{border-top:1px solid rgba(148,163,184,0.3);border-bottom:none;margin-top:auto;}
-    main{padding:24px;max-width:900px;margin:0 auto;flex:1;}
+    main{padding:24px;max-width:1100px;margin:0 auto;flex:1;}
+
     nav button{border:none;background:none;color:#9ca3af;cursor:pointer;font-size:13px;margin-left:8px;}
     nav button:hover{color:#e5e7eb;}
+
     h1{font-size:22px;margin-bottom:8px;}
     .sub{color:#9ca3af;font-size:14px;margin-bottom:16px;}
-    .panel{background:rgba(15,23,42,0.9);border-radius:16px;border:1px solid rgba(148,163,184,0.3);padding:16px;margin-bottom:16px;}
-    .input{width:100%;border-radius:10px;border:1px solid rgba(148,163,184,0.6);background:rgba(15,23,42,0.9);color:#e5e7eb;padding:8px 10px;font-size:13px;margin-bottom:8px;}
-    .pill-btn{border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;border:none;background:linear-gradient(120deg,#22c55e,#4ade80);color:#022c22;}
-    .result-item{border-bottom:1px solid rgba(148,163,184,0.3);padding:8px 0;font-size:13px;}
-    .result-item:last-child{border-bottom:none;}
+
+    /* Calendar grid */
+    .calendar-grid{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:8px;
+      margin-top:20px;
+    }
+    .day{
+      background:rgba(15,23,42,0.9);
+      border:1px solid rgba(148,163,184,0.3);
+      border-radius:12px;
+      padding:10px;
+      min-height:110px;
+      display:flex;
+      flex-direction:column;
+      font-size:13px;
+      cursor:pointer;
+    }
+    .day-number{font-size:12px;color:#9ca3af;margin-bottom:6px;}
+    .event{
+      background:linear-gradient(120deg,#22c55e,#4ade80);
+      color:#022c22;
+      padding:4px 6px;
+      border-radius:6px;
+      font-size:12px;
+      margin-bottom:4px;
+      cursor:pointer;
+    }
+
+    /* Modal */
+    .modal-bg{
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      background:rgba(0,0,0,0.6);
+      display:flex;justify-content:center;align-items:center;
+      z-index:999;display:none;
+    }
+    .modal{
+      background:#0f172a;
+      border:1px solid rgba(148,163,184,0.3);
+      border-radius:16px;
+      padding:20px;
+      width:350px;
+    }
+    .input{
+      width:100%;border-radius:10px;border:1px solid rgba(148,163,184,0.6);
+      background:rgba(15,23,42,0.9);color:#e5e7eb;
+      padding:8px 10px;font-size:13px;margin-bottom:8px;
+    }
+    .pill-btn{
+      border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;
+      border:none;background:linear-gradient(120deg,#22c55e,#4ade80);color:#022c22;
+    }
+    .pill-btn-ghost{
+      border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;
+      border:1px solid rgba(148,163,184,0.5);background:rgba(15,23,42,0.9);color:#e5e7eb;
+    }
   </style>
 </head>
 <body>
+
 <header>
   <div>TimberNova • Calendar</div>
   <nav>
@@ -38,56 +93,146 @@
 
 <main>
   <h1>Calendar</h1>
-  <div class="sub">Jobs, estimates, and follow-ups.</div>
+  <div class="sub">Month view with jobs, estimates, and follow-ups.</div>
 
-  <div class="panel">
-    <h2>Add event</h2>
-    <input id="eventDate" class="input" type="date" />
-    <input id="eventTitle" class="input" placeholder="Title" />
-    <button class="pill-btn" id="addEventBtn">Add</button>
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <button class="pill-btn-ghost" id="prevMonth">← Prev</button>
+    <h2 id="monthLabel"></h2>
+    <button class="pill-btn-ghost" id="nextMonth">Next →</button>
   </div>
 
-  <h2>Events</h2>
-  <div id="eventsList"></div>
+  <div class="calendar-grid" id="calendarGrid"></div>
 </main>
 
 <footer>TimberNova • Calendar</footer>
 
+<!-- Modal -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalDateLabel" style="margin-top:0;margin-bottom:10px;"></h3>
+    <input id="eventTitle" class="input" placeholder="Event title" />
+    <button class="pill-btn" id="saveEventBtn">Save event</button>
+    <div id="eventList" style="margin-top:12px;"></div>
+    <button class="pill-btn-ghost" style="margin-top:12px;" id="closeModal">Close</button>
+  </div>
+</div>
+
 <script>
+/* AUTH */
 function getCurrentUser(){try{return JSON.parse(localStorage.getItem("timberNovaUser")||"null");}catch{return null;}}
 function requireAuth(){if(!getCurrentUser())window.location.href="index.html";}
-function loadEvents(){try{return JSON.parse(localStorage.getItem("timberNovaCalendarEvents")||"[]");}catch{return[];}}
-function saveEvents(list){localStorage.setItem("timberNovaCalendarEvents",JSON.stringify(list));}
-function id(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
-function formatDate(d){return new Date(d).toLocaleDateString();}
-
 requireAuth();
 document.getElementById("logout").onclick=()=>{localStorage.removeItem("timberNovaUser");window.location.href="index.html";};
 
-const listEl=document.getElementById("eventsList");
-function renderEvents(){
-  const events=loadEvents().sort((a,b)=>a.date.localeCompare(b.date));
-  if(!events.length){listEl.innerHTML="<div style='color:#9ca3af;'>No events yet.</div>";return;}
-  listEl.innerHTML=events.map(e=>`
-    <div class="result-item">
-      <strong>${formatDate(e.date)}</strong> — ${e.title}
+/* STORAGE */
+function loadEvents(){try{return JSON.parse(localStorage.getItem("timberNovaCalendarEvents")||"[]");}catch{return[];}}
+function saveEvents(list){localStorage.setItem("timberNovaCalendarEvents",JSON.stringify(list));}
+function id(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+
+/* DATE HELPERS */
+let current = new Date();
+function monthName(m){return new Date(2000,m,1).toLocaleString("default",{month:"long"});}
+function formatDate(d){return new Date(d).toLocaleDateString();}
+
+/* RENDER CALENDAR */
+function renderCalendar(){
+  const year=current.getFullYear();
+  const month=current.getMonth();
+  document.getElementById("monthLabel").textContent = `${monthName(month)} ${year}`;
+
+  const grid=document.getElementById("calendarGrid");
+  grid.innerHTML="";
+
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const events=loadEvents();
+
+  for(let i=0;i<firstDay;i++){
+    const blank=document.createElement("div");
+    blank.className="day";
+    grid.appendChild(blank);
+  }
+
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const dayEl=document.createElement("div");
+    dayEl.className="day";
+    dayEl.dataset.date=dateStr;
+
+    const num=document.createElement("div");
+    num.className="day-number";
+    num.textContent=d;
+    dayEl.appendChild(num);
+
+    const todaysEvents=events.filter(e=>e.date===dateStr);
+    todaysEvents.forEach(ev=>{
+      const evEl=document.createElement("div");
+      evEl.className="event";
+      evEl.textContent=ev.title;
+      evEl.onclick=(e)=>{e.stopPropagation();openModal(dateStr,ev.id);}
+      dayEl.appendChild(evEl);
+    });
+
+    dayEl.onclick=()=>openModal(dateStr);
+    grid.appendChild(dayEl);
+  }
+}
+
+/* MODAL */
+const modalBg=document.getElementById("modalBg");
+const modalDateLabel=document.getElementById("modalDateLabel");
+const eventList=document.getElementById("eventList");
+let activeDate=null;
+
+function openModal(dateStr,editEventId=null){
+  activeDate=dateStr;
+  modalDateLabel.textContent=`Events for ${formatDate(dateStr)}`;
+  modalBg.style.display="flex";
+  renderModalEvents();
+}
+
+function renderModalEvents(){
+  const events=loadEvents().filter(e=>e.date===activeDate);
+  if(!events.length){
+    eventList.innerHTML="<div style='color:#9ca3af;'>No events yet.</div>";
+    return;
+  }
+  eventList.innerHTML=events.map(e=>`
+    <div style="margin-top:6px;padding:6px;border:1px solid rgba(148,163,184,0.3);border-radius:8px;">
+      ${e.title}
+      <button style="float:right;background:none;border:none;color:#f87171;cursor:pointer;" onclick="deleteEvent('${e.id}')">✕</button>
     </div>
   `).join("");
 }
 
-document.getElementById("addEventBtn").onclick=()=>{
-  const date=document.getElementById("eventDate").value;
-  const title=document.getElementById("eventTitle").value.trim();
-  if(!date||!title){alert("Date and title required.");return;}
-  const events=loadEvents();
-  events.push({id:id(),date,title,clientId:null,contractId:null,type:"other"});
+function deleteEvent(eventId){
+  let events=loadEvents();
+  events=events.filter(e=>e.id!==eventId);
   saveEvents(events);
-  document.getElementById("eventDate").value="";
+  renderModalEvents();
+  renderCalendar();
+}
+
+document.getElementById("saveEventBtn").onclick=()=>{
+  const title=document.getElementById("eventTitle").value.trim();
+  if(!title){alert("Enter a title.");return;}
+  const events=loadEvents();
+  events.push({id:id(),date:activeDate,title});
+  saveEvents(events);
   document.getElementById("eventTitle").value="";
-  renderEvents();
+  renderModalEvents();
+  renderCalendar();
 };
 
-renderEvents();
+document.getElementById("closeModal").onclick=()=>{modalBg.style.display="none";};
+
+/* NAVIGATION */
+document.getElementById("prevMonth").onclick=()=>{current.setMonth(current.getMonth()-1);renderCalendar();}
+document.getElementById("nextMonth").onclick=()=>{current.setMonth(current.getMonth()+1);renderCalendar();}
+
+/* INIT */
+renderCalendar();
 </script>
+
 </body>
 </html>
