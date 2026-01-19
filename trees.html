@@ -4,29 +4,51 @@
   <meta charset="UTF-8" />
   <title>TimberNova — Trees</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body{margin:0;background:#020617;color:#f9fafb;font-family:system-ui,sans-serif;display:flex;flex-direction:column;min-height:100vh;}
+    header,footer{padding:16px 24px;background:rgba(2,6,23,0.9);border-bottom:1px solid rgba(148,163,184,0.3);display:flex;justify-content:space-between;align-items:center;}
+    footer{border-top:1px solid rgba(148,163,184,0.3);border-bottom:none;margin-top:auto;}
+    main{padding:24px;max-width:1100px;margin:0 auto;flex:1;display:grid;grid-template-columns:1.6fr 1fr;gap:24px;}
+    nav button{border:none;background:none;color:#9ca3af;cursor:pointer;font-size:13px;margin-left:8px;}
+    nav button:hover{color:#e5e7eb;}
+    h1{font-size:22px;margin-bottom:8px;}
+    h2{font-size:18px;margin:16px 0 8px;}
+    .sub{color:#9ca3af;font-size:14px;margin-bottom:16px;}
+    .panel{background:rgba(15,23,42,0.9);border-radius:16px;border:1px solid rgba(148,163,184,0.3);padding:16px;}
+    .input{width:100%;border-radius:10px;border:1px solid rgba(148,163,184,0.6);background:rgba(15,23,42,0.9);color:#e5e7eb;padding:8px 10px;font-size:13px;margin-bottom:8px;}
+    .filter-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+    .filter-pill{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid rgba(148,163,184,0.5);cursor:pointer;background:rgba(15,23,42,0.9);color:#e5e7eb;}
+    .filter-pill.active{background:linear-gradient(120deg,#22c55e,#4ade80);color:#022c22;border-color:#22c55e;}
+    .result-list{max-height:420px;overflow:auto;}
+    .result-item{border-bottom:1px solid rgba(148,163,184,0.3);padding:8px 0;font-size:13px;cursor:pointer;}
+    .result-item:last-child{border-bottom:none;}
+    .tag{font-size:11px;padding:2px 6px;border-radius:999px;background:rgba(148,163,184,0.2);color:#e5e7eb;margin-right:4px;}
+    .detail-title{font-size:18px;color:#4ade80;margin-bottom:4px;}
+    .detail-sub{font-size:13px;color:#9ca3af;margin-bottom:8px;}
+  </style>
 </head>
-
 <body>
 <header>
   <div>TimberNova • Trees</div>
   <nav>
-    <a href="dashboard.html">Dashboard</a>
-    <a href="contracts.html">Contracts</a>
-    <a href="calendar.html">Calendar</a>
-    <a href="trees.html">Trees</a>
-    <a href="stores.html">Stores</a>
-    <a href="calls.html">Calls</a>
-    <a href="#" id="logout">Logout</a>
+    <button onclick="location.href='dashboard.html'">Dashboard</button>
+    <button onclick="location.href='clients.html'">Clients</button>
+    <button onclick="location.href='contracts.html'">Contracts</button>
+    <button onclick="location.href='calendar.html'">Calendar</button>
+    <button onclick="location.href='trees.html'">Trees</button>
+    <button onclick="location.href='map.html'">Map</button>
+    <button onclick="location.href='profile.html'">Profile</button>
+    <button onclick="location.href='settings.html'">Settings</button>
+    <button id="logout">Logout</button>
   </nav>
 </header>
 
-<main style="padding:24px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.6fr 1fr;gap:24px;">
+<main>
   <section class="panel">
-    <h1>Encyclopedia</h1>
-    <div class="sub">Trees, plants, diseases, and protocols.</div>
+    <h1>Tree, plant & disease encyclopedia</h1>
+    <div class="sub">Search by species, region, or protocol.</div>
 
-    <input id="searchInput" class="input" placeholder="Search species, diseases, regions..." />
+    <input id="searchInput" class="input" placeholder="Search..." />
 
     <div class="filter-row">
       <div class="filter-pill active" data-type="all">All</div>
@@ -47,28 +69,41 @@
 
 <footer>TimberNova • Trees</footer>
 
-<script src="app.js"></script>
 <script>
-TN.requireAuth();
-document.getElementById("logout").onclick = TN.logout;
+function getCurrentUser(){try{return JSON.parse(localStorage.getItem("timberNovaUser")||"null");}catch{return null;}}
+function requireAuth(){if(!getCurrentUser())window.location.href="index.html";}
+const ENC=[
+  {id:"t1",type:"tree",common:"White oak",latin:"Quercus alba",region:"Eastern US",notes:"Strong, long-lived, iconic canopy.",protocol:"Inspect for deadwood, co-dominant stems, and root issues."},
+  {id:"t2",type:"tree",common:"Loblolly pine",latin:"Pinus taeda",region:"Southeast US",notes:"Fast-growing pine common in the Southeast.",protocol:"Check lean, root plate, and wind exposure."},
+  {id:"t3",type:"tree",common:"Red maple",latin:"Acer rubrum",region:"Eastern US",notes:"Adaptable with vibrant fall color.",protocol:"Watch for included bark and decay at unions."},
+  {id:"p1",type:"plant",common:"English ivy",latin:"Hedera helix",region:"Invasive",notes:"Smothers trees and hides defects.",protocol:"Cut vines at base; allow to die back before climbing."},
+  {id:"d1",type:"disease",common:"Armillaria root rot",latin:"Armillaria mellea",region:"Humid temperate",notes:"Fungal root rot; mushrooms at base.",protocol:"Inspect roots; consider removal if structural roots compromised."}
+];
+function searchEnc(q,type){
+  const s=q.toLowerCase();
+  return ENC.filter(i=>{
+    if(type!=="all"&&i.type!==type)return false;
+    return i.common.toLowerCase().includes(s)||
+           i.latin.toLowerCase().includes(s)||
+           i.region.toLowerCase().includes(s)||
+           i.notes.toLowerCase().includes(s)||
+           i.protocol.toLowerCase().includes(s);
+  });
+}
 
-const searchInput = document.getElementById("searchInput");
-const resultList = document.getElementById("resultList");
-const detailPane = document.getElementById("detailPane");
-const pills = [...document.querySelectorAll(".filter-pill")];
+requireAuth();
+document.getElementById("logout").onclick=()=>{localStorage.removeItem("timberNovaUser");window.location.href="index.html";};
 
-let activeType = "all";
+const searchInput=document.getElementById("searchInput");
+const resultList=document.getElementById("resultList");
+const detailPane=document.getElementById("detailPane");
+const pills=[...document.querySelectorAll(".filter-pill")];
+let activeType="all";
 
-function renderList() {
-  const q = searchInput.value;
-  const items = TN.searchEncyclopedia(q, activeType);
-
-  if (!items.length) {
-    resultList.innerHTML = "<div style='color:#9ca3af;'>No matches.</div>";
-    return;
-  }
-
-  resultList.innerHTML = items.map(i => `
+function renderList(){
+  const items=searchEnc(searchInput.value,activeType);
+  if(!items.length){resultList.innerHTML="<div style='color:#9ca3af;'>No matches.</div>";return;}
+  resultList.innerHTML=items.map(i=>`
     <div class="result-item" data-id="${i.id}">
       <span class="tag">${i.type}</span>
       <strong>${i.common}</strong> (${i.latin})<br/>
@@ -76,12 +111,9 @@ function renderList() {
     </div>
   `).join("");
 }
-
-function renderDetail(id) {
-  const i = TN.ENCYCLOPEDIA.find(x => x.id === id);
-  if (!i) return;
-
-  detailPane.innerHTML = `
+function renderDetail(id){
+  const i=ENC.find(x=>x.id===id);if(!i)return;
+  detailPane.innerHTML=`
     <div class="detail-title">${i.common} (${i.latin})</div>
     <div class="detail-sub"><span class="tag">${i.type}</span>Region: ${i.region}</div>
     <div>${i.notes}</div>
@@ -89,22 +121,9 @@ function renderDetail(id) {
   `;
 }
 
-searchInput.addEventListener("input", renderList);
-
-pills.forEach(p => {
-  p.onclick = () => {
-    pills.forEach(x => x.classList.remove("active"));
-    p.classList.add("active");
-    activeType = p.dataset.type;
-    renderList();
-  };
-});
-
-resultList.onclick = e => {
-  const item = e.target.closest(".result-item");
-  if (item) renderDetail(item.dataset.id);
-};
-
+searchInput.addEventListener("input",renderList);
+pills.forEach(p=>{p.onclick=()=>{pills.forEach(x=>x.classList.remove("active"));p.classList.add("active");activeType=p.dataset.type;renderList();};});
+resultList.onclick=e=>{const item=e.target.closest(".result-item");if(item)renderDetail(item.dataset.id);};
 renderList();
 </script>
 </body>
