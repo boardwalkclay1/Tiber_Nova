@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TimberNova — Contracts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body{margin:0;background:#020617;color:#f9fafb;font-family:system-ui,sans-serif;display:flex;flex-direction:column;min-height:100vh;}
+    header,footer{padding:16px 24px;background:rgba(2,6,23,0.9);border-bottom:1px solid rgba(148,163,184,0.3);display:flex;justify-content:space-between;align-items:center;}
+    footer{border-top:1px solid rgba(148,163,184,0.3);border-bottom:none;margin-top:auto;}
+    main{padding:24px;max-width:1100px;margin:0 auto;flex:1;}
+    nav button{border:none;background:none;color:#9ca3af;cursor:pointer;font-size:13px;margin-left:8px;}
+    nav button:hover{color:#e5e7eb;}
+    h1{font-size:22px;margin-bottom:8px;}
+    .sub{color:#9ca3af;font-size:14px;margin-bottom:16px;}
+    .panel{background:rgba(15,23,42,0.9);border-radius:16px;border:1px solid rgba(148,163,184,0.3);padding:16px;margin-bottom:16px;}
+    .result-item{border-bottom:1px solid rgba(148,163,184,0.3);padding:8px 0;font-size:13px;}
+    .result-item:last-child{border-bottom:none;}
+    .pill-btn,.pill-btn-ghost{border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;margin-right:6px;}
+    .pill-btn{border:none;background:linear-gradient(120deg,#22c55e,#4ade80);color:#022c22;}
+    .pill-btn-ghost{border:1px solid rgba(148,163,184,0.5);background:rgba(15,23,42,0.9);color:#e5e7eb;}
+  </style>
+</head>
+<body>
+<header>
+  <div>TimberNova • Contracts</div>
+  <nav>
+    <button onclick="location.href='dashboard.html'">Dashboard</button>
+    <button onclick="location.href='clients.html'">Clients</button>
+    <button onclick="location.href='contracts.html'">Contracts</button>
+    <button onclick="location.href='calendar.html'">Calendar</button>
+    <button onclick="location.href='trees.html'">Trees</button>
+    <button onclick="location.href='map.html'">Map</button>
+    <button onclick="location.href='profile.html'">Profile</button>
+    <button onclick="location.href='settings.html'">Settings</button>
+    <button id="logout">Logout</button>
+  </nav>
+</header>
+
+<main>
+  <h1>Contracts</h1>
+  <div class="sub">Draft, send, and track contracts.</div>
+
+  <div id="contractsList" class="panel"></div>
+
+  <h2 style="font-size:18px;margin:16px 0 8px;">New contract</h2>
+  <button class="pill-btn" onclick="location.href='contract-form.html'">Create contract</button>
+</main>
+
+<footer>TimberNova • Contracts</footer>
+
+<script>
+function getCurrentUser(){try{return JSON.parse(localStorage.getItem("timberNovaUser")||"null");}catch{return null;}}
+function requireAuth(){if(!getCurrentUser())window.location.href="index.html";}
+function loadContracts(){try{return JSON.parse(localStorage.getItem("timberNovaContracts")||"[]");}catch{return[];}}
+function formatDate(d){return new Date(d).toLocaleDateString();}
+
+requireAuth();
+document.getElementById("logout").onclick=()=>{localStorage.removeItem("timberNovaUser");window.location.href="index.html";};
+
+const listEl=document.getElementById("contractsList");
+function renderContracts(){
+  const contracts=loadContracts();
+  if(!contracts.length){listEl.innerHTML="<div style='color:#9ca3af;'>No contracts yet.</div>";return;}
+  listEl.innerHTML=contracts.map(c=>`
+    <div class="result-item">
+      <strong>${c.clientName}</strong> — ${c.jobAddress}<br/>
+      <span style="color:#9ca3af;">Status: ${c.status} • Created: ${formatDate(c.createdAt)}</span><br/>
+      <button class="pill-btn-ghost" onclick="location.href='contract-sign.html?id=${c.id}'">Open</button>
+    </div>
+  `).join("");
+}
+renderContracts();
+</script>
+</body>
+</html>
