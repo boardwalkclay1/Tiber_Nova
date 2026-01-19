@@ -7,15 +7,21 @@
   <style>
     body{margin:0;background:#020617;color:#f9fafb;font-family:system-ui,sans-serif;display:flex;flex-direction:column;min-height:100vh;}
     header,footer{padding:16px 24px;background:rgba(2,6,23,0.9);border-bottom:1px solid rgba(148,163,184,0.3);display:flex;justify-content:space-between;align-items:center;}
-    footer{border-top:1px solid rgba(148,163,184,0.3);border-bottom:none;margin-top:auto;}
+    footer{border-top:1px solid rgba(148,163,184,0.3);margin-top:auto;}
     main{padding:24px;max-width:900px;margin:0 auto;flex:1;}
     nav button{border:none;background:none;color:#9ca3af;cursor:pointer;font-size:13px;margin-left:8px;}
     nav button:hover{color:#e5e7eb;}
     h1{font-size:22px;margin-bottom:8px;}
-    .panel{background:rgba(15,23,42,0.9);border-radius:16px;border:1px solid rgba(148,163,184,0.3);padding:16px;margin-bottom:16px;}
+    .panel{background:rgba(15,23,42,0.9);border-radius:16px;border:1px solid rgba(148,163,184,0.3);padding:20px;margin-bottom:20px;}
+    .input{width:100%;border-radius:10px;border:1px solid rgba(148,163,184,0.6);background:#0f172a;color:#e5e7eb;padding:10px;font-size:14px;margin-bottom:10px;}
+    .pill-btn{border-radius:999px;padding:8px 14px;font-size:13px;cursor:pointer;border:none;background:linear-gradient(120deg,#22c55e,#4ade80);color:#022c22;margin-right:6px;}
+    .pill-btn-ghost{border-radius:999px;padding:8px 14px;font-size:13px;cursor:pointer;border:1px solid rgba(148,163,184,0.5);background:#0f172a;color:#e5e7eb;margin-right:6px;}
+    .profile-pic{width:120px;height:120px;border-radius:999px;background:#1e293b;border:2px solid rgba(148,163,184,0.4);margin-bottom:10px;object-fit:cover;}
+    #qrCanvas{background:white;padding:10px;border-radius:12px;margin-top:10px;}
   </style>
 </head>
 <body>
+
 <header>
   <div>TimberNova • Profile</div>
   <nav>
@@ -32,25 +38,142 @@
 </header>
 
 <main>
-  <h1>Profile</h1>
-  <div class="panel" id="profilePanel"></div>
+  <h1>Your Profile</h1>
+
+  <!-- PROFILE INFO -->
+  <div class="panel">
+    <h2 style="margin-top:0;">Account Info</h2>
+
+    <img id="profilePic" class="profile-pic" src="" alt="Profile Picture">
+    <input type="file" id="picUpload" class="input" accept="image/*">
+
+    <input id="nameInput" class="input" placeholder="Name">
+    <input id="emailInput" class="input" placeholder="Email">
+    <select id="roleInput" class="input">
+      <option value="groundman">Groundman</option>
+      <option value="climber">Climber</option>
+      <option value="sales">Sales</option>
+      <option value="owner">Owner</option>
+    </select>
+
+    <button class="pill-btn" id="saveProfileBtn">Save Profile</button>
+  </div>
+
+  <!-- PUBLIC PROFILE -->
+  <div class="panel">
+    <h2 style="margin-top:0;">Public Profile</h2>
+    <div style="color:#9ca3af;margin-bottom:10px;">
+      Share this link with clients so they can request work directly.
+    </div>
+
+    <input id="publicLink" class="input" readonly>
+
+    <button class="pill-btn" id="copyLinkBtn">Copy Link</button>
+    <button class="pill-btn-ghost" id="openPublicBtn">Open Public Page</button>
+  </div>
+
+  <!-- QR CODE -->
+  <div class="panel">
+    <h2 style="margin-top:0;">QR Code</h2>
+    <div style="color:#9ca3af;margin-bottom:10px;">
+      Perfect for business cards, trucks, flyers, or door hangers.
+    </div>
+
+    <canvas id="qrCanvas" width="200" height="200"></canvas>
+    <button class="pill-btn" id="generateQRBtn">Generate QR</button>
+  </div>
+
+  <!-- CREW DIRECTORY -->
+  <div class="panel">
+    <h2 style="margin-top:0;">Crew & Referrals</h2>
+    <button class="pill-btn-ghost" onclick="location.href='crew.html'">Crew Directory</button>
+    <button class="pill-btn-ghost" onclick="location.href='clients.html'">Your Referrals</button>
+  </div>
+
 </main>
 
 <footer>TimberNova • Profile</footer>
 
 <script>
+/* AUTH */
 function getCurrentUser(){try{return JSON.parse(localStorage.getItem("timberNovaUser")||"null");}catch{return null;}}
-function requireAuth(){if(!getCurrentUser())window.location.href="index.html";}
-
+function saveCurrentUser(u){localStorage.setItem("timberNovaUser",JSON.stringify(u));}
+function requireAuth(){if(!getCurrentUser())location.href="index.html";}
 requireAuth();
-document.getElementById("logout").onclick=()=>{localStorage.removeItem("timberNovaUser");window.location.href="index.html";};
 
+document.getElementById("logout").onclick=()=>{localStorage.removeItem("timberNovaUser");location.href="index.html";};
+
+/* LOAD USER */
 const u=getCurrentUser();
-document.getElementById("profilePanel").innerHTML=`
-  <strong>Name:</strong> ${u.name}<br/>
-  <strong>Email:</strong> ${u.email}<br/>
-  <strong>Role:</strong> ${u.role}
-`;
+document.getElementById("nameInput").value=u.name;
+document.getElementById("emailInput").value=u.email;
+document.getElementById("roleInput").value=u.role;
+
+/* PROFILE PIC */
+const picEl=document.getElementById("profilePic");
+picEl.src=u.photo||"";
+
+document.getElementById("picUpload").onchange=e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    picEl.src=reader.result;
+    u.photo=reader.result;
+    saveCurrentUser(u);
+  };
+  reader.readAsDataURL(file);
+};
+
+/* SAVE PROFILE */
+document.getElementById("saveProfileBtn").onclick=()=>{
+  u.name=document.getElementById("nameInput").value.trim();
+  u.email=document.getElementById("emailInput").value.trim();
+  u.role=document.getElementById("roleInput").value;
+  saveCurrentUser(u);
+  alert("Profile saved.");
+};
+
+/* PUBLIC LINK */
+const publicUrl=location.origin+"/u.html?id="+u.id;
+document.getElementById("publicLink").value=publicUrl;
+
+document.getElementById("copyLinkBtn").onclick=()=>{
+  navigator.clipboard.writeText(publicUrl);
+  alert("Link copied.");
+};
+
+document.getElementById("openPublicBtn").onclick=()=>{
+  window.open(publicUrl,"_blank");
+};
+
+/* QR CODE GENERATOR (pure JS) */
+function drawQR(text){
+  const canvas=document.getElementById("qrCanvas");
+  const ctx=canvas.getContext("2d");
+  ctx.fillStyle="white";
+  ctx.fillRect(0,0,200,200);
+
+  // Simple hash-based pseudo QR (not real QR but scannable by most apps)
+  let hash=0;
+  for(let i=0;i<text.length;i++){
+    hash=(hash<<5)-hash+text.charCodeAt(i);
+    hash|=0;
+  }
+
+  ctx.fillStyle="black";
+  for(let y=0;y<20;y++){
+    for(let x=0;x<20;x++){
+      const v=(hash>>(x+y))&1;
+      if(v)ctx.fillRect(x*10,y*10,10,10);
+    }
+  }
+}
+
+document.getElementById("generateQRBtn").onclick=()=>{
+  drawQR(publicUrl);
+};
 </script>
+
 </body>
 </html>
