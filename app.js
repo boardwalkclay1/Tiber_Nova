@@ -6,17 +6,50 @@
 window.TN = {};
 
 /* ------------------------------
-   AUTH
+   AUTH & USERS
 ------------------------------ */
+TN.loadUsers = function () {
+  try { return JSON.parse(localStorage.getItem("timberNovaUsers") || "[]"); }
+  catch { return []; }
+};
+
+TN.saveUsers = function (list) {
+  localStorage.setItem("timberNovaUsers", JSON.stringify(list));
+};
+
+TN.setCurrentUser = function (user) {
+  localStorage.setItem("timberNovaUser", JSON.stringify(user));
+};
+
+TN.getCurrentUser = function () {
+  try { return JSON.parse(localStorage.getItem("timberNovaUser") || "null"); }
+  catch { return null; }
+};
+
 TN.requireAuth = function () {
-  if (!localStorage.getItem("timberNovaUser")) {
-    window.location.href = "index.html";
-  }
+  const u = TN.getCurrentUser();
+  if (!u) window.location.href = "index.html";
 };
 
 TN.logout = function () {
   localStorage.removeItem("timberNovaUser");
   window.location.href = "index.html";
+};
+
+/* ------------------------------
+   CLIENTS
+------------------------------ */
+TN.loadClients = function () {
+  try { return JSON.parse(localStorage.getItem("timberNovaClients") || "[]"); }
+  catch { return []; }
+};
+
+TN.saveClients = function (list) {
+  localStorage.setItem("timberNovaClients", JSON.stringify(list));
+};
+
+TN.getClientById = function (id) {
+  return TN.loadClients().find(c => c.id === id);
 };
 
 /* ------------------------------
@@ -29,6 +62,10 @@ TN.loadContracts = function () {
 
 TN.saveContracts = function (list) {
   localStorage.setItem("timberNovaContracts", JSON.stringify(list));
+};
+
+TN.getContractById = function (id) {
+  return TN.loadContracts().find(c => c.id === id);
 };
 
 /* ------------------------------
@@ -44,6 +81,18 @@ TN.saveEvents = function (list) {
 };
 
 /* ------------------------------
+   SETTINGS
+------------------------------ */
+TN.loadSettings = function () {
+  try { return JSON.parse(localStorage.getItem("timberNovaSettings") || "{}"); }
+  catch { return {}; }
+};
+
+TN.saveSettings = function (obj) {
+  localStorage.setItem("timberNovaSettings", JSON.stringify(obj));
+};
+
+/* ------------------------------
    DATE HELPERS
 ------------------------------ */
 TN.todayStr = function () {
@@ -56,7 +105,7 @@ TN.formatDate = function (d) {
 };
 
 /* ------------------------------
-   TREE / PLANT / DISEASE INDEX
+   ENCYCLOPEDIA
 ------------------------------ */
 TN.ENCYCLOPEDIA = [
   { id:"t1", type:"tree", common:"White oak", latin:"Quercus alba", region:"Eastern US", notes:"Strong, long-lived, iconic canopy.", protocol:"Inspect for deadwood, co-dominant stems, and root issues." },
@@ -66,9 +115,6 @@ TN.ENCYCLOPEDIA = [
   { id:"d1", type:"disease", common:"Armillaria root rot", latin:"Armillaria mellea", region:"Humid temperate", notes:"Fungal root rot; mushrooms at base.", protocol:"Inspect roots; consider removal if structural roots compromised." }
 ];
 
-/* ------------------------------
-   ENCYCLOPEDIA SEARCH
------------------------------- */
 TN.searchEncyclopedia = function (query, type="all") {
   const q = query.toLowerCase();
   return TN.ENCYCLOPEDIA.filter(item => {
@@ -83,9 +129,6 @@ TN.searchEncyclopedia = function (query, type="all") {
   });
 };
 
-/* ------------------------------
-   TREE OF THE DAY
------------------------------- */
 TN.treeOfDay = function () {
   const trees = TN.ENCYCLOPEDIA.filter(i => i.type === "tree");
   return trees[Math.floor(Math.random() * trees.length)];
@@ -97,4 +140,11 @@ TN.treeOfDay = function () {
 TN.toolSearchWeb = function (query) {
   if (!query.trim()) return;
   window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, "_blank");
+};
+
+/* ------------------------------
+   ID HELPER
+------------------------------ */
+TN.id = function () {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
 };
