@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TimberNova — Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body{margin:0;background:#020617;color:#f9fafb;font-family:system-ui,sans-serif;display:flex;flex-direction:column;min-height:100vh;}
+    header,footer{padding:16px 24px;background:rgba(2,6,23,0.9);border-bottom:1px solid rgba(148,163,184,0.3);display:flex;justify-content:space-between;align-items:center;}
+    footer{border-top:1px solid rgba(148,163,184,0.3);border-bottom:none;margin-top:auto;}
+    main{padding:24px;max-width:1100px;margin:0 auto;flex:1;}
+    nav button{border:none;background:none;color:#9ca3af;cursor:pointer;font-size:13px;margin-left:8px;}
+    nav button:hover{color:#e5e7eb;}
+    h1{font-size:22px;margin-bottom:8px;}
+    .sub{color:#9ca3af;font-size:14px;margin-bottom:16px;}
+    .panel{background:rgba(15,23,42,0.9);border-radius:16px;border:1px solid rgba(148,163,184,0.3);padding:16px;margin-bottom:16px;}
+    #map{height:500px;border-radius:16px;overflow:hidden;}
+  </style>
+</head>
+<body>
+<header>
+  <div>TimberNova • Map</div>
+  <nav>
+    <button onclick="location.href='dashboard.html'">Dashboard</button>
+    <button onclick="location.href='clients.html'">Clients</button>
+    <button onclick="location.href='contracts.html'">Contracts</button>
+    <button onclick="location.href='calendar.html'">Calendar</button>
+    <button onclick="location.href='trees.html'">Trees</button>
+    <button onclick="location.href='map.html'">Map</button>
+    <button onclick="location.href='profile.html'">Profile</button>
+    <button onclick="location.href='settings.html'">Settings</button>
+    <button id="logout">Logout</button>
+  </nav>
+</header>
+
+<main>
+  <h1>Map</h1>
+  <div class="sub">Clients, base location, and distance.</div>
+
+  <div class="panel">
+    <div id="map"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Selected client</h2>
+    <div id="clientInfo" style="color:#9ca3af;">No client selected.</div>
+  </div>
+</main>
+
+<footer>TimberNova • Map</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function getCurrentUser(){try{return JSON.parse(localStorage.getItem("timberNovaUser")||"null");}catch{return null;}}
+function requireAuth(){if(!getCurrentUser())window.location.href="index.html";}
+function loadClients(){try{return JSON.parse(localStorage.getItem("timberNovaClients")||"[]");}catch{return[];}}
+function loadSettings(){try{return JSON.parse(localStorage.getItem("timberNovaSettings")||"{}");}catch{return{};}}
+function distanceKm(lat1,lng1,lat2,lng2){
+  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+requireAuth();
+document.getElementById("logout").onclick=()=>{localStorage.removeItem("timberNovaUser");window.location.href="index.html";};
+
+const settings=loadSettings();
+const baseLat=settings.baseLat||33.7490;
+const baseLng=settings.baseLng||-84.3880;
+
+const map=L.map('map').setView([baseLat,baseLng],11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+const baseMarker=L.marker([baseLat,baseLng]).addTo(map).bindPopup("Base location");
+
+const params=new URLSearchParams(location.search);
+const clientId=params.get("clientId");
+const clientInfoEl=document.getElementById("clientInfo");
+const clients=loadClients();
+
+clients.forEach(c=>{
+  if(c.lat&&c.lng){
+    const m=L.marker([c.lat,c.lng]).addTo(map).bindPopup(c.name);
+    if(clientId&&c.id===clientId){
+      map.setView([c.lat,c.lng],14);
+      const dist=distanceKm(baseLat,baseLng,c.lat,c.lng).toFixed(1);
+      clientInfoEl.innerHTML=`
+        <strong>${c.name}</strong><br/>
+        ${c.address||""}<br/>
+        Distance from base: ${dist} km
+      `;
+      m.openPopup();
+    }
+  }
+});
+
+if(!clientId){
+  clientInfoEl.textContent="Open a client and click 'Open on map' to focus them here.";
+}
+</script>
+</body>
+</html>
