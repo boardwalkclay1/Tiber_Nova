@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TimberNova — Client Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body{margin:0;background:#020617;color:#f9fafb;font-family:system-ui,sans-serif;}
+    header{padding:16px 24px;background:#0f172a;border-bottom:1px solid rgba(148,163,184,0.3);}
+    main{padding:24px;max-width:900px;margin:0 auto;}
+    h1{font-size:22px;margin-bottom:8px;}
+    .sub{color:#9ca3af;font-size:14px;margin-bottom:20px;}
+    .panel{background:#0f172a;border:1px solid rgba(148,163,184,0.3);border-radius:16px;padding:20px;margin-bottom:20px;}
+    .pill-btn{border-radius:999px;padding:8px 14px;font-size:13px;cursor:pointer;border:none;background:linear-gradient(120deg,#22c55e,#4ade80);color:#022c22;margin-right:6px;}
+    .pill-btn-ghost{border-radius:999px;padding:8px 14px;font-size:13px;cursor:pointer;border:1px solid rgba(148,163,184,0.5);background:#0f172a;color:#e5e7eb;margin-right:6px;}
+  </style>
+</head>
+<body>
+
+<header>
+  <h2>TimberNova • Client Portal</h2>
+</header>
+
+<main>
+  <h1 id="clientName">Welcome</h1>
+  <div class="sub">Your jobs, contracts, and updates.</div>
+
+  <div class="panel">
+    <h2>Your Actions</h2>
+    <button class="pill-btn" onclick="location.href='client-contracts.html?id='+cid">View Contracts</button>
+    <button class="pill-btn-ghost" onclick="location.href='client-jobs.html?id='+cid">Job Status</button>
+    <button class="pill-btn-ghost" onclick="location.href='client-profile.html?id='+cid">Your Info</button>
+  </div>
+
+  <div class="panel">
+    <h2>Latest Update</h2>
+    <div id="latestUpdate" style="color:#9ca3af;">No updates yet.</div>
+  </div>
+</main>
+
+<script>
+function loadClients(){try{return JSON.parse(localStorage.getItem("timberNovaClients")||"[]");}catch{return[];}}
+function loadEvents(){try{return JSON.parse(localStorage.getItem("timberNovaCalendarEvents")||"[]");}catch{return[];}}
+
+const params=new URLSearchParams(location.search);
+const cid=params.get("id");
+const client=loadClients().find(c=>c.id===cid);
+
+if(!client){document.body.innerHTML="Client not found.";throw"";}
+
+document.getElementById("clientName").textContent="Hello, "+client.name;
+
+const events=loadEvents().filter(e=>e.clientId===cid);
+if(events.length){
+  const latest=events[events.length-1];
+  document.getElementById("latestUpdate").textContent=latest.title+" on "+latest.date;
+}
+</script>
+
+</body>
+</html>
