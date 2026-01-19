@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TimberNova — Sign up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header>
+  <div>TimberNova</div>
+  <nav></nav>
+</header>
+
+<main>
+  <h1>Create your crew account</h1>
+  <div class="sub">Groundman, climber, salesman, or owner.</div>
+
+  <div class="panel" style="max-width:420px;">
+    <input id="name" class="input" placeholder="Name" />
+    <input id="email" class="input" placeholder="Email" />
+    <input id="password" class="input" type="password" placeholder="Password" />
+    <select id="role" class="input">
+      <option value="groundman">Groundman</option>
+      <option value="climber">Climber</option>
+      <option value="sales">Sales</option>
+      <option value="owner">Owner</option>
+    </select>
+    <button class="pill-btn" id="signupBtn">Sign up</button>
+  </div>
+</main>
+
+<footer>TimberNova</footer>
+
+<script src="app.js"></script>
+<script>
+document.getElementById("signupBtn").onclick = () => {
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  const password = document.getElementById("password").value;
+  const role = document.getElementById("role").value;
+
+  if (!name || !email || !password) {
+    alert("Fill out all fields.");
+    return;
+  }
+
+  const users = TN.loadUsers();
+  if (users.find(u => u.email === email)) {
+    alert("Email already in use.");
+    return;
+  }
+
+  const user = { id: TN.id(), name, email, password, role };
+  users.push(user);
+  TN.saveUsers(users);
+  TN.setCurrentUser(user);
+  window.location.href = "dashboard.html";
+};
+</script>
+</body>
+</html>
