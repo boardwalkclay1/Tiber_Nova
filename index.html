@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TimberNova — Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header>
+  <div>TimberNova</div>
+  <nav></nav>
+</header>
+
+<main>
+  <h1>Welcome to TimberNova</h1>
+  <div class="sub">Tree crews, sales, and clients in one place.</div>
+
+  <div class="panel" style="max-width:420px;">
+    <h2>Login</h2>
+    <input id="loginEmail" class="input" placeholder="Email" />
+    <input id="loginPassword" class="input" type="password" placeholder="Password" />
+    <button class="pill-btn" id="loginBtn">Login</button>
+    <div style="margin-top:12px;font-size:13px;color:#9ca3af;">
+      No account yet?
+      <a href="signup.html" style="color:#38bdf8;">Sign up</a>
+    </div>
+  </div>
+</main>
+
+<footer>TimberNova</footer>
+
+<script src="app.js"></script>
+<script>
+const current = TN.getCurrentUser();
+if (current) window.location.href = "dashboard.html";
+
+document.getElementById("loginBtn").onclick = () => {
+  const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+  const password = document.getElementById("loginPassword").value;
+  const users = TN.loadUsers();
+  const u = users.find(x => x.email === email && x.password === password);
+  if (!u) {
+    alert("Invalid email or password.");
+    return;
+  }
+  TN.setCurrentUser(u);
+  window.location.href = "dashboard.html";
+};
+</script>
+</body>
+</html>
