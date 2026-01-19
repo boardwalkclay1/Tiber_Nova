@@ -4,7 +4,17 @@
   <meta charset="UTF-8" />
   <title>TimberNova — Sign up</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body{margin:0;background:#020617;color:#f9fafb;font-family:system-ui,sans-serif;display:flex;flex-direction:column;min-height:100vh;}
+    header,footer{padding:16px 24px;background:rgba(2,6,23,0.9);border-bottom:1px solid rgba(148,163,184,0.3);display:flex;justify-content:space-between;align-items:center;}
+    footer{border-top:1px solid rgba(148,163,184,0.3);border-bottom:none;margin-top:auto;}
+    main{padding:24px;max-width:420px;margin:0 auto;flex:1;}
+    h1{font-size:22px;margin-bottom:8px;}
+    .sub{color:#9ca3af;font-size:14px;margin-bottom:16px;}
+    .panel{background:rgba(15,23,42,0.9);border-radius:16px;border:1px solid rgba(148,163,184,0.3);padding:16px;}
+    .input{width:100%;border-radius:10px;border:1px solid rgba(148,163,184,0.6);background:rgba(15,23,42,0.9);color:#e5e7eb;padding:8px 10px;font-size:13px;margin-bottom:8px;}
+    .pill-btn{border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;border:none;background:linear-gradient(120deg,#22c55e,#4ade80);color:#022c22;}
+  </style>
 </head>
 <body>
 <header>
@@ -14,9 +24,9 @@
 
 <main>
   <h1>Create your crew account</h1>
-  <div class="sub">Groundman, climber, salesman, or owner.</div>
+  <div class="sub">Groundman, climber, sales, or owner.</div>
 
-  <div class="panel" style="max-width:420px;">
+  <div class="panel">
     <input id="name" class="input" placeholder="Name" />
     <input id="email" class="input" placeholder="Email" />
     <input id="password" class="input" type="password" placeholder="Password" />
@@ -32,30 +42,23 @@
 
 <footer>TimberNova</footer>
 
-<script src="app.js"></script>
 <script>
-document.getElementById("signupBtn").onclick = () => {
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim().toLowerCase();
-  const password = document.getElementById("password").value;
-  const role = document.getElementById("role").value;
+function loadUsers(){try{return JSON.parse(localStorage.getItem("timberNovaUsers")||"[]");}catch{return[];}}
+function saveUsers(list){localStorage.setItem("timberNovaUsers",JSON.stringify(list));}
+function setCurrentUser(u){localStorage.setItem("timberNovaUser",JSON.stringify(u));}
+function id(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
 
-  if (!name || !email || !password) {
-    alert("Fill out all fields.");
-    return;
-  }
-
-  const users = TN.loadUsers();
-  if (users.find(u => u.email === email)) {
-    alert("Email already in use.");
-    return;
-  }
-
-  const user = { id: TN.id(), name, email, password, role };
-  users.push(user);
-  TN.saveUsers(users);
-  TN.setCurrentUser(user);
-  window.location.href = "dashboard.html";
+document.getElementById("signupBtn").onclick=()=>{
+  const name=document.getElementById("name").value.trim();
+  const email=document.getElementById("email").value.trim().toLowerCase();
+  const password=document.getElementById("password").value;
+  const role=document.getElementById("role").value;
+  if(!name||!email||!password){alert("Fill out all fields.");return;}
+  const users=loadUsers();
+  if(users.find(u=>u.email===email)){alert("Email already in use.");return;}
+  const user={id:id(),name,email,password,role};
+  users.push(user);saveUsers(users);setCurrentUser(user);
+  window.location.href="dashboard.html";
 };
 </script>
 </body>
